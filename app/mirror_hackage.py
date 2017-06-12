@@ -27,8 +27,10 @@ count = 0
 
 for pkg in packages:
 	cabal = (requests.get("https://hackage.haskell.org/package/" + pkg['packageName'] + "/" + pkg['packageName'] + ".cabal")).text
-	version = cabal.find('ersion:')
-	end_of_line = cabal.find('\n', version)
+	version = cabal.find('\nVersion')
+	if (version < 0):
+		version = cabal.find('\nversion')
+	end_of_line = cabal.find('\n', version + 2)
 	ver_str = cabal[version:end_of_line]
 	digits = re.search('\d', ver_str)
 	version = ver_str[digits.start():len(ver_str)]
