@@ -2,6 +2,7 @@ import requests
 import urllib.request
 import json
 import re
+import os
 
 r = requests.get("https://hackage.haskell.org/packages/.json")
 packages = json.loads(r.text)
@@ -16,6 +17,8 @@ packages = json.loads(r.text)
 # digits = re.search('\d', ver_str)
 # print(ver_str[digits.start():len(ver_str)])
 
+if not os.path.exists('../hackage/'):
+    	os.makedirs('../hackage/')
 
 # version = cabal[version + int(digits) : len(ver_str) - digits]
 
@@ -29,15 +32,17 @@ for pkg in packages:
 	ver_str = cabal[version:end_of_line]
 	digits = re.search('\d', ver_str)
 	version = ver_str[digits.start():len(ver_str)]
-	print(pkg['packageName'])
-	print('https://hackage.haskell.org/package/')
-	print('https://hackage.haskell.org/package/' + pkg['packageName'])
-	print('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version)
-	ggg = 'https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version
-	print(ggg + '/' + pkg['packageName'])
-	print(ggg	 + '/' + pkg['packageName'] + '-' + version + '.tar.gz')
+	if (version[-1] == '\r'):
+		version = version[:-1]
+	# print(pkg['packageName'])
+	# print('https://hackage.haskell.org/package/')
+	# print('https://hackage.haskell.org/package/' + pkg['packageName'])
+	# print('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version)
+	# ggg = 'https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version
+	# print(ggg + '/' + pkg['packageName'])
+	# print(ggg	 + '/' + pkg['packageName'] + '-' + version + '.tar.gz')
 	# print('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version + '/' + pkg['packageName'] + '-' + version)
-	# urllib.request.urlretrieve('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version + '/' + pkg['packageName'] + '-' + version + '.tar.gz', 'hackage/' + pkg['packageName'] + '-' + version + '.tar.gz')
+	urllib.request.urlretrieve('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version + '/' + pkg['packageName'] + '-' + version + '.tar.gz', '../hackage/' + pkg['packageName'] + '-' + version + '.tar.gz')
 	count = count + 1
 	if (count == 10):
 		break
