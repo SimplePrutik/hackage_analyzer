@@ -7,51 +7,29 @@ import os
 r = requests.get("https://hackage.haskell.org/packages/.json")
 packages = json.loads(r.text)
 
-# cabal = (requests.get("https://hackage.haskell.org/package/" + packages[0]['packageName'] + "/" + packages[0]['packageName'] + ".cabal")).text
-# version = cabal.find('Version:')
-# print(version)
-# end_of_line = cabal.find('\n', version)
-# print(end_of_line)
-# ver_str = cabal[version:end_of_line]
-# print(ver_str)
-# digits = re.search('\d', ver_str)
-# print(ver_str[digits.start():len(ver_str)])
-
 if not os.path.exists('../hackage/'):
     	os.makedirs('../hackage/')
-
-# version = cabal[version + int(digits) : len(ver_str) - digits]
-
-# print(version)
 count = 0
 
 for pkg in packages:
-	cabal = (requests.get("https://hackage.haskell.org/package/" + pkg['packageName'] + "/" + pkg['packageName'] + ".cabal")).text
-	version = cabal.find('\nVersion')
-	if (version < 0):
-		version = cabal.find('\nversion')
-	end_of_line = cabal.find('\n', version + 2)
-	ver_str = cabal[version:end_of_line]
-	digits = re.search('\d', ver_str)
-	version = ver_str[digits.start():len(ver_str)]
-	if (version[-1] == '\r'):
-		version = version[:-1]
-	# print(pkg['packageName'])
-	# print('https://hackage.haskell.org/package/')
-	# print('https://hackage.haskell.org/package/' + pkg['packageName'])
-	# print('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version)
-	# ggg = 'https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version
-	# print(ggg + '/' + pkg['packageName'])
-	# print(ggg	 + '/' + pkg['packageName'] + '-' + version + '.tar.gz')
-	# print('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version + '/' + pkg['packageName'] + '-' + version)
-	urllib.request.urlretrieve('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version + '/' + pkg['packageName'] + '-' + version + '.tar.gz', '../hackage/' + pkg['packageName'] + '-' + version + '.tar.gz')
-	count = count + 1
-	if (count == 10):
-		break
+	try:
+		cabal = (requests.get("https://hackage.haskell.org/package/" + pkg['packageName'] + "/" + pkg['packageName'] + ".cabal")).text
+	except:
+		print(pkg['packageName'] + ' get_request couldnt be made')
+	
+	try:
+		version = re.search('(v|V)ersion *:? *\r?\n? *((\d.)*\d)', cabal).group(2)
+	except:
+		print(pkg['packageName'] + ' smthg wrong with version')
 
+	try:
+		urllib.request.urlretrieve('https://hackage.haskell.org/package/' + pkg['packageName'] + '-' + version + '/' + pkg['packageName'] + '-' + version + '.tar.gz', '../hackage/' + pkg['packageName'] + '-' + version + '.tar.gz')
+	except:
+		print(pkg['packageName'] + ' download was interrupted')
+
+	if count == 10:
+		break
+	count = count + 1
 	
 
-# urllib.request.urlretrieve('http://github.com/jonpetterbergman/bgmax/archive/master.zip', 'hackage/bgmax.zip')
-
-# r = requests.get("https://hackage.haskell.org/package/bgmax/bgmax.cabal")
-# print(r.text)
+	
