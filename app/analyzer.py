@@ -10,7 +10,7 @@ def onerror(func, path, exc_info):
 
 
 build_depends_pattern = '(b|B)uild-(d|D)epends:?(\s*(\w|-)+([0-9.<>=&|*]|\s)*,)*\s*(\w|-)+'
-imported_modules_pattern = 'import\s+(?:qualified )?(\S+)'
+imported_modules_pattern = 'import\s+(?:qualified )?(?:([a-zA-Z-_]+)\.)'
 extentions_pattern = '\{-#\s*LANGUAGE\s+(\S+)\s*#-\}'
 
 b_len = 13
@@ -23,11 +23,13 @@ delete_err = []
 debug = open('debug.log', 'w')
 dependencies = open('dependencies.log', 'w')
 modules = open('modules.log', 'w')
-extensions = open('extentions.log', 'w')
+extensions = open('extensions.log', 'w')
+
+count = 0
 
 tree = os.walk('../hackage/') 
 for d, dir, files in tree:
-    for f in files:
+    for f in files: 
         try:
             tar = tarfile.open('../hackage/' + f)
             tar.extractall()
@@ -52,16 +54,17 @@ for d, dir, files in tree:
                         deps = re.search(build_depends_pattern, file)
                         while (deps):
                             depends = deps.group()[b_len + 1:]
-                            deps_ = re.findall('[A-Za-z-]+', depends)
+                            deps_ = re.findall('[A-Za-z0-9-]*[A-Za-z]+[A-Za-z0-9-]*', depends)
                             for _deps in deps_:
                                 all_deps.append(_deps)
                                 debug.write(_deps + '\n')
                             file = file[deps.start() + 1:]
                             deps = re.search(build_depends_pattern, file)
                         unique = set(all_deps)
-                        dependencies.write(_f + ' ')
+                        dependencies.write(arch + ' ')
                         for _deps in unique:
                             dependencies.write(_deps + ' ')
+                        dependencies.write('\n')
                     except:
                         read_err.append(f)
                 if (_f.endswith('.hs')):
@@ -71,8 +74,9 @@ for d, dir, files in tree:
                         _file = file
                         mods = re.search(imported_modules_pattern, file)
                         while (mods):
-                            module = deps.group(1)
+                            module = mods.group(1)
                             all_modules.append(module)
+                            # print(module)
                             file = file[mods.start() + 1:]
                             mods = re.search(imported_modules_pattern, file)
                         exts = re.search(extentions_pattern, _file)
@@ -83,14 +87,19 @@ for d, dir, files in tree:
                             exts = re.search(extentions_pattern, _file)
                     except:
                         read_err.append(f)  
-            unique = set(all_modules)
-            modules.write(_f + ' ')
-            for mods in unique:
-                modules.write(mods + ' ') 
-            unique = set(all_ext)
-            extentions.write(_f + ' ')  
-            for ext in unique:
-                extentions.write(ext + ' ')
+        unique = set(all_modules)
+        # print(all_modules)
+        # print(unique)
+        modules.write(arch + ' ')
+        for mods in unique:
+            modules.write(mods + ' ') 
+        modules.write('\n')
+        unique = set(all_ext)
+        # print(all_ext)
+        extensions.write(arch + ' ')  
+        for ext in unique:
+            extensions.write(ext + ' ')
+        extensions.write('\n')
         tar.close()
         try:
             shutil.rmtree(arch, ignore_errors=False, onerror=onerror)
